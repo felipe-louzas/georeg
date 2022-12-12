@@ -7,7 +7,13 @@
 ### Registro de Imóveis Georreferenciados em blockchain
 ---------
 
-※ Esse projeto foi desenvolvido para o "*[Hackathon Web3 da Secretaria do Patrimônio da União](https://desafios.enap.gov.br/pt/desafios/hackathon-web3-tokenizacao-do-patrimonio-da-uniao)*" ※
+※ Esse projeto foi submetido ao "*[Hackathon Web3 da Secretaria do Patrimônio da União](https://desafios.enap.gov.br/pt/desafios/hackathon-web3-tokenizacao-do-patrimonio-da-uniao)*" ※
+
+*ESSE REPOSITÓRIO NÃO FAZ PARTE DA SUBMISSÃO AO HACKATHON!*
+
+O repositório do projeto submetido ao Hackathon é este: [https://github.com/felipe-louzas/georeg-hackathon-web3](https://github.com/felipe-louzas/georeg-hackathon-web3)
+
+------
 
 O presente projeto buscou identificar uma solução inovadora que atendesse aos objetivos da Secretaria de Patrimônio da União – SPU quanto a caracterização e incorporação de imóveis, a partir da superação dos seus principais desafios e de uma proposta de aplicações futuras, a fim de aprimorar a gestão do patrimônio da União. Assim, a questão a ser respondida foi: como gerar, registrar, organizar e acessar os dados dos imóveis georreferenciados para caracterizá-los, incorporá-los ao patrimônio da União e regularizar o domínio dos bens pela União, de forma confiável, transparente, segura e acessível? 
 
