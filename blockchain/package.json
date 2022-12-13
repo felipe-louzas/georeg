@@ -1,9 +1,0 @@
-{
-    "name": "georeg-blockchain",
-    "version": "0.1.0",
-    "private": true,
-    "devDependencies": {
-        "@openzeppelin/contracts": "^4.8.0",
-        "@truffle/hdwallet-provider": "^2.1.3"
-    }
-}
