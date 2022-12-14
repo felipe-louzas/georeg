@@ -35,8 +35,6 @@ import { geocodedFeatures, state } from "../../store/state";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./MapPage.css";
 
-let mapping = false;
-
 export default function MapPage() {
   const mapRef = useRef<MapRef>(null);
   const { kit } = useCelo();
@@ -136,94 +134,101 @@ export default function MapPage() {
     };
   }
 
-  async function onMapIdle(evt: MapboxEvent) {
-    if (mapping) return;
-    mapping = true;
-
+  async function loadCells() {
     const ref = mapRef.current;
     if (!ref) return;
 
-    try {
-      const canvas = ref.getCanvas();
-      const zoom = ref.getZoom() | 0;
+    const canvas = ref.getCanvas();
+    const zoom = ref.getZoom() | 0;
 
-      const w = canvas.width;
-      const h = canvas.height;
-      const cUL: number[] = ref.unproject([0, 0]).toArray();
-      const cUR: number[] = ref.unproject([w, 0]).toArray();
-      const cLR: number[] = ref.unproject([w, h]).toArray();
-      const cLL: number[] = ref.unproject([0, h]).toArray();
+    const w = canvas.width;
+    const h = canvas.height;
+    const cUL: number[] = ref.unproject([0, 0]).toArray();
+    const cUR: number[] = ref.unproject([w, 0]).toArray();
+    const cLR: number[] = ref.unproject([w, h]).toArray();
+    const cLL: number[] = ref.unproject([0, h]).toArray();
 
-      const geometry: GeoJSON.Polygon = {
-        type: "Polygon",
-        coordinates: [[cUL, cUR, cLR, cLL, cUL]],
-      };
+    const geometry: GeoJSON.Polygon = {
+      type: "Polygon",
+      coordinates: [[cUL, cUR, cLR, cLL, cUL]],
+    };
 
-      const imovelRegistry = new kit.connection.web3.eth.Contract(
-        ImovelRegistry.abi as AbiItem[],
-        "0xE6dE4daff89851E371506ee49148e55a2D1266F9"
-      );
+    const imovelRegistry = new kit.connection.web3.eth.Contract(
+      ImovelRegistry.abi as AbiItem[],
+      "0xE6dE4daff89851E371506ee49148e55a2D1266F9"
+    );
 
-      if (zoom > 15) {
-        const resp = await geocode(geometry, 0, 24, 1);
+    if (zoom >= 13) {
+      const resp = await geocode(geometry, 0, 24, 1);
+      const token = resp.tokens[0];
 
-        const ret: string[] = await imovelRegistry.methods
+      let ret: string[];
+      if (state.cellCache[token]) {
+        ret = state.cellCache[token];
+      } else {
+        ret = await imovelRegistry.methods
           .registeredCells(packCell(resp.tokens[0]))
           .call();
-
-        if (!ret) return;
-
-        const cellIds = ret.map((c) =>
-          BigInt(c).toString(16).replace(/0+$/, "")
-        );
-
-        const multipoly = await getMultipolyForCells(cellIds);
-
-        state.registeredFeatures = multipoly;
-        setMarkers([]);
-      } else {
-        const minLevel = zoom - 1;
-        const resp = await geocode(geometry, minLevel, 24, 8);
-
-        const counts: number[][] = [];
-        const cellsToPlot: string[] = [];
-        for (let idx in resp.tokens) {
-          const token = resp.tokens[idx];
-
-          if (state.locationCache[token]) {
-            counts[idx] = state.locationCache[token];
-          } else {
-            const ret: number[] = await imovelRegistry.methods
-              .registeredCellsPerQuad(packCell(token))
-              .call();
-            state.locationCache[token] = ret;
-            counts[idx] = ret;
-          }
-
-          if (counts[idx].filter((c) => c > 0).length > 0) {
-            cellsToPlot.push(token);
-          }
-        }
-
-        const coordMap = await getCellQuadrants(cellsToPlot);
-
-        const markers: Cell[] = [];
-        for (let idx in resp.tokens) {
-          for (let quad = 0; quad < 4; quad++) {
-            if (counts[idx][quad] > 0) {
-              markers.push(coordMap[resp.tokens[idx]][quad]);
-            }
-          }
-        }
-
-        setMarkers(markers);
-        state.registeredFeatures = undefined;
+        state.cellCache[token] = ret;
       }
 
-      await onFeaturesUpdated();
-    } finally {
-      mapping = false;
+      if (!ret) return;
+
+      const cellIds = ret.map((c) => BigInt(c).toString(16).replace(/0+$/, ""));
+
+      const multipoly = await getMultipolyForCells(cellIds);
+
+      state.registeredFeatures = multipoly;
+      //setMarkers([]);
+    } else {
+      const minLevel = zoom - 1;
+      const resp = await geocode(geometry, minLevel, 24, 8);
+
+      const counts: number[][] = [];
+      const cellsToPlot: string[] = [];
+      for (let idx in resp.tokens) {
+        const token = resp.tokens[idx];
+
+        if (state.locationCache[token]) {
+          counts[idx] = state.locationCache[token];
+        } else {
+          const ret: number[] = await imovelRegistry.methods
+            .registeredCellsPerQuad(packCell(token))
+            .call();
+          state.locationCache[token] = ret;
+          counts[idx] = ret;
+        }
+
+        if (counts[idx].filter((c) => c > 0).length > 0) {
+          cellsToPlot.push(token);
+        }
+      }
+
+      const coordMap = await getCellQuadrants(cellsToPlot);
+
+      //const markers: Cell[] = [];
+      const polys: number[][][][] = [];
+      for (let idx in resp.tokens) {
+        for (let quad = 0; quad < 4; quad++) {
+          if (counts[idx][quad] > 0) {
+            //markers.push(coordMap[resp.tokens[idx]][quad]);
+            polys.push(coordMap[resp.tokens[idx]][quad].poly);
+          }
+        }
+      }
+
+      //setMarkers(markers);
+      state.registeredFeatures = {
+        type: "MultiPolygon",
+        coordinates: polys,
+      };
     }
+
+    await onFeaturesUpdated();
+  }
+
+  async function onMapIdle(evt: MapboxEvent) {
+    await loadCells();
   }
 
   async function onFeaturesUpdated() {
@@ -266,8 +271,8 @@ export default function MapPage() {
       <Map
         ref={mapRef}
         initialViewState={{
-          longitude: -47.8828,
-          latitude: -15.79407,
+          longitude: -47.06546,
+          latitude: -22.90457,
           zoom: 14,
         }}
         mapStyle="mapbox://styles/mapbox/streets-v12"
@@ -285,7 +290,7 @@ export default function MapPage() {
           <Layer
             id="registered-layer"
             type="fill"
-            paint={{ "fill-opacity": 0.3, "fill-color": "#990000" }}
+            paint={{ "fill-opacity": 0.3, "fill-color": "#00998c" }}
           />
         </Source>
         {markers.map((m) => (

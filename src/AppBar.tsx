@@ -52,14 +52,15 @@ export default function AppBar() {
               Search
             </button>
           </form>
-          */}
+          
           <div className="btn btn-outline-dark me-3">
             <small>{network.name}</small>
           </div>
+          */}
           {address ? (
             <div className="dropdown">
               <button
-                className="btn btn-outline-dark dropdown-toggle"
+                className="btn btn-secondary dropdown-toggle"
                 type="button"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"

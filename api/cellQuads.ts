@@ -1,11 +1,12 @@
 import s2 from "@radarlabs/s2";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getMultiPolyForCells } from "./_utilsS2";
+import { getMultiPolyForCells, getPolygonForCell } from "./_utilsS2";
 
 interface Cell {
   token: string;
   lat: number;
   lng: number;
+  poly: number[][][];
 }
 
 export default function cellQuads(req: VercelRequest, res: VercelResponse) {
@@ -22,10 +23,12 @@ export default function cellQuads(req: VercelRequest, res: VercelResponse) {
       const childId = cellId.child(q as s2.ChildPosition);
       const child = new s2.Cell(childId);
       const center = new s2.LatLng(child.getCenter());
+      const poly = getPolygonForCell(childId);
       cells.push({
         token: childId.token(),
         lat: center.latitude(),
         lng: center.longitude(),
+        poly: poly,
       });
     }
 

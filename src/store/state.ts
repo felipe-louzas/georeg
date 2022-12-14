@@ -8,8 +8,10 @@ export const geocodedFeatures: {
 interface State {
   registeredFeatures?: GeoJSON.MultiPolygon;
   locationCache: { [id: string]: number[] };
+  cellCache: { [id: string]: string[] };
 }
 
 export const state: State = {
   locationCache: {},
+  cellCache: {},
 };
