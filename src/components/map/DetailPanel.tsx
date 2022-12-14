@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import Loader from "../Loader";
 import { useCelo } from "@celo/react-celo";
 import { AbiItem } from "web3-utils";
-import { GeocodedFeature, packCellData } from "../../services/geocoding";
+import { GeocodedFeature } from "../../services/geocoding";
+import { packCellData } from "../../services/packer";
 import ImovelRegistry from "../../web3/types/ImovelRegistry.json";
 import { toast } from "react-toastify";
 
@@ -45,11 +46,12 @@ function FeatureDetails(props: { feature: GeocodedFeature }) {
         "0xE6dE4daff89851E371506ee49148e55a2D1266F9"
       );
 
-      const tx = await imovelRegistry.methods
-        .claimLand(address, "", packCellData(props.feature.tokens))
-        .send({ from: address, gas: 20000000 });
+      const tokens = props.feature.tokens;
+      const packedCellData = packCellData(tokens);
 
-      console.log(tx);
+      await imovelRegistry.methods
+        .claimLand(address, "", packedCellData)
+        .send({ from: address, gas: 20000000 });
 
       toast.success("Imóvel registrado com sucesso!");
     } catch (ex: any) {

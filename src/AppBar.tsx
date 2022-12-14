@@ -1,9 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
 
-import { useCelo } from "@celo/react-celo";
+import { useCelo, NetworkNames } from "@celo/react-celo";
 
 export default function AppBar() {
-  const { connect, address, disconnect } = useCelo();
+  const { connect, address, disconnect, network, updateNetwork, networks } =
+    useCelo();
+
+  useEffect(() => {
+    const newNetwork = networks.find((n) => n.name === NetworkNames.Alfajores);
+    if (newNetwork) {
+      updateNetwork(newNetwork);
+    }
+  }, [networks, updateNetwork]);
 
   return (
     <nav className="navbar navbar-expand-lg bg-light border-bottom border-secondary">
@@ -45,16 +53,18 @@ export default function AppBar() {
             </button>
           </form>
           */}
-
+          <div className="btn btn-outline-dark me-3">
+            <small>{network.name}</small>
+          </div>
           {address ? (
             <div className="dropdown">
               <button
-                className="btn btn-secondary dropdown-toggle"
+                className="btn btn-outline-dark dropdown-toggle"
                 type="button"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                {address}
+                <small>{address}</small>
               </button>
               <ul className="dropdown-menu  dropdown-menu-end">
                 <li>

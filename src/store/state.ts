@@ -7,6 +7,9 @@ export const geocodedFeatures: {
 
 interface State {
   registeredFeatures?: GeoJSON.MultiPolygon;
+  locationCache: { [id: string]: number[] };
 }
 
-export const state: State = {};
+export const state: State = {
+  locationCache: {},
+};
