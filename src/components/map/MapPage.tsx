@@ -270,6 +270,7 @@ export default function MapPage() {
     const selectedId = selectedFeatureId;
     drawControl.delete(selectedId);
     unselectFeature();
+    state.cellCache = {};
     await loadCells();
     removeFeature(selectedId);
   }
