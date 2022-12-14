@@ -18,8 +18,10 @@ type DrawControlProps = ConstructorParameters<typeof MapboxDraw>[0] & {
   onSelect: (evt: DrawSelectionChangeEvent) => void;
 };
 
+export var drawControl: MapboxDraw;
+
 export default function DrawControl(props: DrawControlProps) {
-  useControl<MapboxDraw>(
+  drawControl = useControl<MapboxDraw>(
     () => new MapboxDraw(props),
     ({ map }: { map: MapRef }) => {
       map.on("draw.create", props.onCreate);

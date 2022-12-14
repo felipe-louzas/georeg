@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/geocode.ts": {
+      "includeFiles": "node_modules/@radarlabs/s2/**"
+    },
+    "api/drawCells.ts": {
+      "includeFiles": "node_modules/@radarlabs/s2/**"
+    },
+    "api/cellQuads.ts": {
+      "includeFiles": "node_modules/@radarlabs/s2/**"
+    }
+  }
+}

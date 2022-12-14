@@ -12,6 +12,7 @@ import "./DetailPanel.css";
 type Props = {
   show: boolean;
   feature?: GeocodedFeature;
+  onRegistered?: () => void;
 };
 
 export default function DetailPanel(props: Props) {
@@ -22,7 +23,10 @@ export default function DetailPanel(props: Props) {
       <div className="sidebar-content rounded-rect">
         {props.show ? (
           props.feature ? (
-            <FeatureDetails feature={props.feature} />
+            <FeatureDetails
+              feature={props.feature}
+              onRegistered={props.onRegistered}
+            />
           ) : (
             <Loader />
           )
@@ -34,7 +38,10 @@ export default function DetailPanel(props: Props) {
   );
 }
 
-function FeatureDetails(props: { feature: GeocodedFeature }) {
+function FeatureDetails(props: {
+  feature: GeocodedFeature;
+  onRegistered?: () => void;
+}) {
   const [registering, setRegistering] = useState(false);
   const { address, kit } = useCelo();
 
@@ -54,6 +61,9 @@ function FeatureDetails(props: { feature: GeocodedFeature }) {
         .send({ from: address, gas: 20000000 });
 
       toast.success("Imóvel registrado com sucesso!");
+      if (props.onRegistered) {
+        props.onRegistered();
+      }
     } catch (ex: any) {
       console.error("Houve um erro ao registrar imovel", ex);
 

@@ -19,7 +19,7 @@ import {
   DrawSelectionChangeEvent,
 } from "@mapbox/mapbox-gl-draw";
 
-import DrawControl from "./DrawControl";
+import DrawControl, {drawControl} from "./DrawControl";
 import DetailPanel from "./DetailPanel";
 
 import {
@@ -40,6 +40,7 @@ export default function MapPage() {
   const { kit } = useCelo();
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState<GeocodedFeature>();
+  const [selectedFeatureId, setSelectedFeatureId] = useState<string>();  
   const [cells, setCells] = useState<GeoJSON.FeatureCollection>({
     type: "FeatureCollection",
     features: [],
@@ -96,6 +97,7 @@ export default function MapPage() {
    */
 
   async function selectFeature(id: string | number) {
+    setSelectedFeatureId(id.toString());
     setShowSidebar(true);
 
     const feature = await geocodedFeatures[id];
@@ -104,6 +106,7 @@ export default function MapPage() {
 
   function unselectFeature() {
     setSelectedFeature(undefined);
+    setSelectedFeatureId(undefined);
     setShowSidebar(false);
   }
 
@@ -262,6 +265,13 @@ export default function MapPage() {
     }
   }
 
+  async function onFeatureRegistered(){
+    if (!selectedFeatureId) return;
+    drawControl.delete(selectedFeatureId);
+    unselectFeature();
+    await loadCells();
+  }
+
   /**
    * Component Tree
    */
@@ -317,7 +327,11 @@ export default function MapPage() {
           }}
         />
       </Map>
-      <DetailPanel show={showSidebar} feature={selectedFeature} />
+      <DetailPanel
+        show={showSidebar}
+        feature={selectedFeature}
+        onRegistered={onFeatureRegistered}
+      />
     </div>
   );
 }
